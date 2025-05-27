@@ -10,3 +10,4 @@ npm install
 npm run tauri build
 ```
 - launch the application (src-tauri/target/release/cliphistory)
+- CTRL/CMD + SHIFT + C to make the application window active again when it goes background.

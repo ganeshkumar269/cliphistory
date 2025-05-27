@@ -31,22 +31,14 @@ impl ClipboardHandler {
         }
     }
 
-    pub fn monitor_clipboard(self){
+    pub fn monitor_clipboard(mut self){
         thread::spawn(move || {
-            let mut clipboard = match arboard::Clipboard::new() {
-                Ok(cb) => cb,
-                Err(e) => {
-                    eprintln!("Monitor Thread: Failed to initialize clipboard: {:?}", e);
-                    return;
-                }
-            };
-
             loop {
                 thread::sleep(Duration::from_millis(300));
 
                 let current_app_state: tauri::State<AppState> = self.app_handle.state::<AppState>();
 
-                match clipboard.get_text() {
+                match self.clipboard.get_text() {
                     Ok(current_text) => {
                         if current_text.trim().is_empty() {
                             continue;

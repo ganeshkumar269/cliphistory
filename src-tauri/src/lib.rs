@@ -31,7 +31,7 @@ fn get_all_clips(state: tauri::State<AppState>) -> Result<Vec<String>, String> {
     match state.db.lock() {
         Ok(clips_guard) => {
             let b = clips_guard.deref();
-            let res = b.get_all_clips_str();
+            let res = b.get_all_clips_str(1000); // nobody(me) wants more than 1000 in UI
             Ok(res)
         }
         Err(e) => Err(format!("Failed to lock clips: {}", e)),

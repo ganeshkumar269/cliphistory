@@ -40,19 +40,18 @@ impl Database {
         }
         Ok(())
     }
-    pub fn get_all_clips_str(&self) -> Vec<String> {
-        // res
-        self.get_all_clips()
+    pub fn get_all_clips_str(&self, limit: u32) -> Vec<String> {
+        self.get_all_clips(limit)
             .unwrap()
             .into_iter()
             .map(|x| x.value)
             .collect()
     }
-    pub fn get_all_clips(&self) -> Result<Vec<Clip>> {
-        let query_string = "
-            SELECT timestamp, value, hash FROM history ORDER BY TIMESTAMP DESC
-        ";
-        let mut stmt = self.conn.prepare(query_string)?;
+    pub fn get_all_clips(&self, limit: u32) -> Result<Vec<Clip>> {
+        let query_string = format!("
+            SELECT timestamp, value, hash FROM history ORDER BY TIMESTAMP DESC LIMIT {limit}
+        ");
+        let mut stmt = self.conn.prepare(query_string.as_str())?;
         let clips_iter = stmt.query_map([], |row| {
             Ok(Clip {
                 timestamp: row.get(0)?,

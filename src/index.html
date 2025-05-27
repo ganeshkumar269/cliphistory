@@ -137,6 +137,24 @@
     const searchInputElement = document.getElementById('search-input');
     const clearSearchBtnElement = document.getElementById('clear-search-btn');
 
+
+    function createListElementWithClipText(clipText){
+        const li = document.createElement('li');
+        li.textContent = clipText.length > 100 ? clipText.substring(0, 97) + '...' : clipText;
+        li.title = clipText;
+        li.addEventListener('click', async () => {
+            try {
+                await writeText(clipText);
+                console.log('Copied to clipboard:', clipText);
+                clipListElement.removeChild(li);
+                console.log('removed from list and added at the end');
+            } catch (error) {
+                console.error('Failed to copy to clipboard:', error);
+            }
+        });
+        return li
+    }
+
     async function renderClips(clips) {
         clipListElement.innerHTML = '';
         if (!clips || clips.length === 0) {
@@ -146,21 +164,14 @@
             return;
         }
         clips.forEach(clipText => {
-            const li = document.createElement('li');
-            li.textContent = clipText.length > 100 ? clipText.substring(0, 97) + '...' : clipText;
-            li.title = clipText;
-            li.addEventListener('click', async () => {
-                try {
-                    await writeText(clipText);
-                    console.log('Copied to clipboard:', clipText);
-                } catch (error) {
-                    console.error('Failed to copy to clipboard:', error);
-                }
-            });
+            const li = createListElementWithClipText(clipText);
             clipListElement.appendChild(li);
         });
     }
-
+    function updateClipsList(clipText){
+        const li = createListElementWithClipText(clipText);
+        clipListElement.prepend(li);
+    }
     async function fetchAndRenderClips() {
         try {
             const clips = await invoke('get_all_clips');
@@ -214,16 +225,10 @@
 
     async function setupEventListeners() {
         await listen('clips_updated', (event) => {
-            console.log('JS: Received clips_updated event.');
-            // If user is not actively searching, refresh the list.
-            // If they are searching, let their search results persist
-            // until they clear search or trigger a new full fetch.
-            // For simplicity now, always refresh. If search input has text,
-            // the displayed list might not match what's on clipboard.
-            // A better approach might be to re-run search if input has text.
+            console.log(`JS: Received clips_updated event., ${JSON.stringify(event)}`);
             if (searchInputElement.value.trim() === "") {
-                console.log('JS: clips_updated and search is empty, fetching all clips.');
-                fetchAndRenderClips();
+                console.log('JS: clips_updated and search is empty, updated the list with received text.');
+                updateClipsList(event.payload);
             } else {
                 console.log('JS: clips_updated but search active, re-running search for:', searchInputElement.value);
                 performSearch(searchInputElement.value.trim());

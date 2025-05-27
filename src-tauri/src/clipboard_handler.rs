@@ -42,7 +42,7 @@ impl ClipboardHandler {
             };
 
             loop {
-                thread::sleep(Duration::from_millis(1000));
+                thread::sleep(Duration::from_millis(300));
 
                 let current_app_state: tauri::State<AppState> = self.app_handle.state::<AppState>();
 
@@ -62,16 +62,12 @@ impl ClipboardHandler {
                             println!("Monitor Thread: Detected new clip: {}", current_text.chars().take(50).collect::<String>());
 
                             let mut db_gaurd = current_app_state.db.lock().unwrap();
-                            let millis = SystemTime::now()
-                                .duration_since(UNIX_EPOCH)
-                                .unwrap()
-                                .as_millis();
-                            db_gaurd.upsert(Clip::new(current_text.clone(), millis as i64));
+                            db_gaurd.upsert(Clip::new(current_text.clone()));
 
                             *last_content_guard = Some(current_text.clone());
                             drop(last_content_guard);
 
-                            self.app_handle.emit("clips_updated", ()).unwrap_or_else(|e| {
+                            self.app_handle.emit("clips_updated", current_text).unwrap_or_else(|e| {
                                 eprintln!("Monitor Thread: Failed to emit clips_updated event: {}", e);
                             });
                         } else {

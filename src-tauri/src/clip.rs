@@ -1,3 +1,4 @@
+use std::time::{SystemTime, UNIX_EPOCH};
 use hex;
 use md5::{Digest, Md5};
 #[derive(Debug)]
@@ -8,14 +9,17 @@ pub struct Clip {
 }
 
 impl Clip {
-    pub fn new(value: String, timestamp: i64) -> Clip {
+    pub fn new(value: String) -> Clip {
+        let millis = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis();
         let mut hasher = Md5::new();
         hasher.update(value.clone());
         let hash = hex::encode(hasher.finalize());
-        // let hash = String::from(hasher.finalize().as_slice());
         Clip {
             value,
-            timestamp,
+            timestamp: millis as i64,
             hash,
         }
     }

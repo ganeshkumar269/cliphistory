@@ -2,7 +2,7 @@ use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use arboard::Clipboard;
 use tauri::{AppHandle, Emitter, Manager};
-use crate::AppState;
+use crate::{utils, AppState};
 use crate::clip::Clip;
 
 pub struct ClipboardHandler {
@@ -52,9 +52,11 @@ impl ClipboardHandler {
 
                         if should_insert {
                             println!("Monitor Thread: Detected new clip: {}", current_text.chars().take(50).collect::<String>());
+                            let active_app_name = utils::get_active_app_name_macos().unwrap();
+                            println!("active app name {}", active_app_name);
 
                             let mut db_gaurd = current_app_state.db.lock().unwrap();
-                            db_gaurd.upsert(Clip::new(current_text.clone()));
+                            db_gaurd.upsert(Clip::new(current_text.clone(), active_app_name));
 
                             *last_content_guard = Some(current_text.clone());
                             drop(last_content_guard);

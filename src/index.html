@@ -144,9 +144,11 @@
         li.title = clipText;
         li.addEventListener('click', async () => {
             try {
-                await writeText(clipText);
+                // await writeText(clipText);
                 console.log('Copied to clipboard:', clipText);
                 clipListElement.removeChild(li);
+                clipListElement.prepend(li);
+                await invoke('update_clipboard_on_click', {"clipText": clipText});
                 console.log('removed from list and added at the end');
             } catch (error) {
                 console.error('Failed to copy to clipboard:', error);

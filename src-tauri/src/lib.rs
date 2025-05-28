@@ -1,6 +1,7 @@
 use std::ops::Deref;
 use std::sync::{Arc, Mutex};
 use arboard::Clipboard;
+use rusqlite::fallible_iterator::FallibleIterator;
 use tauri::{AppHandle, Emitter, Manager, Position};
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::TrayIconBuilder;
@@ -29,11 +30,11 @@ use crate::clip::Clip;
 use crate::clipboard_handler::ClipboardHandler;
 
 #[tauri::command]
-fn get_all_clips(state: tauri::State<AppState>) -> Result<Vec<String>, String> {
+fn get_all_clips(state: tauri::State<AppState>) -> Result<Vec<Clip>, String> {
     match state.db.lock() {
         Ok(clips_guard) => {
             let b = clips_guard.deref();
-            let res = b.get_all_clips_str(1000); // nobody(me) wants more than 1000 in UI
+            let res = b.get_all_clips(1000).unwrap(); // nobody(me) wants more than 1000 in UI
             Ok(res)
         }
         Err(e) => Err(format!("Failed to lock clips: {}", e)),
@@ -41,22 +42,23 @@ fn get_all_clips(state: tauri::State<AppState>) -> Result<Vec<String>, String> {
 }
 
 #[tauri::command]
-fn on_search(term: String, state: tauri::State<AppState>) -> Result<Vec<String>, String> {
+fn on_search(term: String, state: tauri::State<AppState>) -> Result<Vec<Clip>, String> {
     println!("Rust: Searching for term: {}", term);
-    let term = term.to_lowercase(); // For case-insensitive search
-    if term.trim().is_empty() {
-        return get_all_clips(state);
-    }
 
     match state.db.lock() {
         Ok(db) => {
+            let term = term.to_lowercase(); // For case-insensitive search
+            if term.trim().is_empty() {
+                return Ok(db.get_all_clips(1000).unwrap());
+            }
             let filtered_clips = db
                 .search(term)
-                .unwrap()
-                .into_iter()
-                .map(|x| x.value)
-                .collect::<Vec<String>>();
+                .unwrap();
+                // .into_iter()
+                // .map(|x| x.value)
+                // .collect::<Vec<String>>();
             Ok(filtered_clips)
+            // filtered_clips
         }
         Err(e) => Err(format!("Failed to lock clips for search: {}", e)),
     }

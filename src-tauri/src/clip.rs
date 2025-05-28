@@ -1,7 +1,9 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 use hex;
 use md5::{Digest, Md5};
-#[derive(Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)] // Make sure Serialize is here!
 pub struct Clip {
     pub(crate) value: String,
     pub(crate) timestamp: i64,

@@ -80,7 +80,7 @@ impl Database {
                 timestamp: row.get(0)?,
                 value: row.get(1)?,
                 hash: row.get(2)?,
-                source: row.get(3)?
+                source: row.get(3).unwrap_or(String::from("")),
             })
         })?;
         let clips: Vec<Clip> = clips_iter.collect::<Result<Vec<_>>>()?;

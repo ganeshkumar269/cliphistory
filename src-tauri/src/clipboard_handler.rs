@@ -56,12 +56,13 @@ impl ClipboardHandler {
                             println!("active app name {}", active_app_name);
 
                             let mut db_gaurd = current_app_state.db.lock().unwrap();
-                            db_gaurd.upsert(Clip::new(current_text.clone(), active_app_name));
+                            let new_clip = Clip::new(current_text.clone(), active_app_name);
+                            db_gaurd.upsert(new_clip.clone());
 
                             *last_content_guard = Some(current_text.clone());
                             drop(last_content_guard);
 
-                            self.app_handle.emit("clips_updated", current_text).unwrap_or_else(|e| {
+                            self.app_handle.emit("clips_updated", new_clip).unwrap_or_else(|e| {
                                 eprintln!("Monitor Thread: Failed to emit clips_updated event: {}", e);
                             });
                         } else {

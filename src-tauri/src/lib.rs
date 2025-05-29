@@ -42,25 +42,31 @@ fn get_all_clips(state: tauri::State<AppState>) -> Result<Vec<Clip>, String> {
 }
 
 #[tauri::command]
-fn on_search(term: String, state: tauri::State<AppState>) -> Result<Vec<Clip>, String> {
+fn on_search(term: String, source_app_filter:String, state: tauri::State<AppState>) -> Result<Vec<Clip>, String> {
     println!("Rust: Searching for term: {}", term);
 
     match state.db.lock() {
         Ok(db) => {
             let term = term.to_lowercase(); // For case-insensitive search
-            if term.trim().is_empty() {
+            if term.trim().is_empty() && source_app_filter.trim().is_empty() {
                 return Ok(db.get_all_clips(1000).unwrap());
             }
             let filtered_clips = db
-                .search(term)
+                .search(term, source_app_filter)
                 .unwrap();
-                // .into_iter()
-                // .map(|x| x.value)
-                // .collect::<Vec<String>>();
             Ok(filtered_clips)
-            // filtered_clips
         }
         Err(e) => Err(format!("Failed to lock clips for search: {}", e)),
+    }
+}
+
+#[tauri::command]
+fn get_unique_source_apps(state: tauri::State<AppState>) -> Result<Vec<String>, String>{
+    match state.db.lock() {
+        Ok(db)=>{
+            Ok(db.get_all_sources())
+        }
+        Err(e) => Err(format!("Failed to lock db: {}", e)),
     }
 }
 
@@ -110,7 +116,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(app_state)
-        .invoke_handler(tauri::generate_handler![get_all_clips, on_search, update_clipboard_on_click])
+        .invoke_handler(tauri::generate_handler![get_all_clips, on_search, update_clipboard_on_click, get_unique_source_apps])
         .setup(|app| {
             let open_i = MenuItem::with_id(app, "open", "Open", true, None::<&str>)?;
             let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;

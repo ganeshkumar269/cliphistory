@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "identifier": "com.cliphistory.app",
   "build": {
-    "frontendDist": "../src"
+    "frontendDist": "../svelte-frontend",
+    "beforeBuildCommand": "cd svelte-frontend && npm install && npm run build",
+    "beforeDevCommand": "npm run dev --prefix svelte-frontend",
+    "devUrl": "http://localhost:5173"
   },
   "app": {
     "withGlobalTauri": true,

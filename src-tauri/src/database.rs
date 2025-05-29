@@ -1,6 +1,7 @@
 use crate::clip::Clip;
 use dirs;
 use rusqlite::{params, Connection, Result};
+use rusqlite::fallible_iterator::FallibleIterator;
 
 pub(crate) struct Database {
     conn: Connection,
@@ -72,8 +73,12 @@ impl Database {
         // Ok(clips)
     }
 
-    pub fn search(&self, pattern: String) -> Result<Vec<Clip>> {
-        let query_string = format!("SELECT timestamp, value, hash, source FROM history WHERE value like \"%{}%\" order by timestamp desc", pattern);
+    pub fn search(&self, pattern: String, source: String) -> Result<Vec<Clip>> {
+        let query_string = if source.is_empty() {
+            format!("SELECT timestamp, value, hash, source FROM history WHERE value like \"%{}%\" order by timestamp desc", pattern)
+        } else{
+            format!("SELECT timestamp, value, hash, source FROM history WHERE value like \"%{}%\" and source = '{}'order by timestamp desc", pattern, source)
+        };
         let mut stmt = self.conn.prepare(query_string.as_str())?;
         let clips_iter = stmt.query_map([], |row| {
             Ok(Clip {
@@ -85,5 +90,13 @@ impl Database {
         })?;
         let clips: Vec<Clip> = clips_iter.collect::<Result<Vec<_>>>()?;
         Ok(clips)
+    }
+
+    pub fn get_all_sources(&self) -> Vec<String> {
+        let query_string = "SELECT distinct source FROM history";
+        let mut stmt = self.conn.prepare(query_string).unwrap();
+        stmt.query_map([], |row| {
+            Ok(row.get(0).unwrap_or(String::from("")))
+        }).unwrap().collect::<Result<Vec<_>>>().unwrap()
     }
 }

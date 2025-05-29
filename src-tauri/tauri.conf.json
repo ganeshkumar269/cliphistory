@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "com.cliphistory.app",
   "build": {
-    "frontendDist": "../svelte-frontend",
+    "frontendDist": "../svelte-frontend/dist/",
     "beforeBuildCommand": "cd svelte-frontend && npm install && npm run build",
     "beforeDevCommand": "npm run dev --prefix svelte-frontend",
     "devUrl": "http://localhost:5173"

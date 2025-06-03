@@ -62,7 +62,6 @@ mod macos_utils {
     }
 }
 
-// Example Tauri command that uses this utility
 // #[tauri::command]
 pub fn get_active_app_name_macos() -> Result<String, String> {
     #[cfg(target_os = "macos")]

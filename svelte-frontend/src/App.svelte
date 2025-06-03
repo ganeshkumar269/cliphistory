@@ -14,7 +14,7 @@
   const clips = writable<ClipItem[]>([]);
   const uniqueSourceApps = writable<string[]>([]);
   const searchTerm = writable('');
-  const selectedSourceApp = writable(''); // Stores the value of the selected source app filter
+  const selectedSourceApp = writable('');
 
   let unlistenClipsUpdated: UnlistenFn | null = null;
 
@@ -26,7 +26,7 @@
       console.log(`Svelte: Fetching with term: "${termValue}", source_app: "${sourceAppValue}"`);
       const results = await invoke<ClipItem[]>('on_search', {
         term: termValue === null ? "" : termValue,
-        sourceAppFilter: sourceAppValue === null ? "" : sourceAppValue, // Ensure your Rust command expects this param name
+        sourceAppFilter: sourceAppValue === null ? "" : sourceAppValue,
       });
       clips.set(results);
     } catch (error) {
@@ -85,7 +85,6 @@
       if ($searchTerm.trim() === "" && $selectedSourceApp === "") {
         clips.update(currentClips => [newClip, ...currentClips]);
       } else {
-        // If filtering is active, a full re-fetch is better to ensure consistency
         await fetchAndRenderFilteredClips();
       }
     });

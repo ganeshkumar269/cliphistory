@@ -1,7 +1,6 @@
 use crate::clip::Clip;
 use dirs;
 use rusqlite::{params, Connection, Result};
-use rusqlite::fallible_iterator::FallibleIterator;
 
 pub(crate) struct Database {
     conn: Connection,
@@ -69,15 +68,13 @@ impl Database {
             Ok(clips) => clips.collect(),
             Err(E) => panic!("Error at get clips {}", E)
         }
-        // let clips: Vec<Clip> = clips_iter.collect::<Result<Vec<_>>>();
-        // Ok(clips)
     }
 
     pub fn search(&self, pattern: String, source: String) -> Result<Vec<Clip>> {
         let query_string = if source.is_empty() {
-            format!("SELECT timestamp, value, hash, source FROM history WHERE value like \"%{}%\" order by timestamp desc", pattern)
+            format!("SELECT timestamp, value, hash, source FROM history WHERE value like \"%{}%\" ORDER BY timestamp DESC", pattern)
         } else{
-            format!("SELECT timestamp, value, hash, source FROM history WHERE value like \"%{}%\" and source = '{}'order by timestamp desc", pattern, source)
+            format!("SELECT timestamp, value, hash, source FROM history WHERE value like \"%{}%\" and source = '{}' ORDER BY timestamp DESC", pattern, source)
         };
         let mut stmt = self.conn.prepare(query_string.as_str())?;
         let clips_iter = stmt.query_map([], |row| {
